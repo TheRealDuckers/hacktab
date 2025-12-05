@@ -183,21 +183,49 @@
     }
 
     /* Mac-style window boxes */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap: 16px;
-    }
-    .window {
-      grid-column: span 6;
-      background: linear-gradient(180deg, #0f141a, #0d1218);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: 0 12px 24px var(--shadow);
-      overflow: hidden;
-      user-select: none;
-      position: relative;
-    }
+    /* layout */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 16px;
+  align-items: start;
+  box-sizing: border-box;
+  grid-auto-rows: minmax(120px, auto);
+}
+
+/* window card */
+.window {
+  grid-column: span 6;
+  background: linear-gradient(180deg, #0f141a, #0d1218);
+  border: 1px solid var(--border, rgba(255,255,255,0.06));
+  border-radius: var(--radius, 10px);
+  box-shadow: 0 12px 24px var(--shadow, rgba(2,6,23,0.6));
+  overflow: hidden;
+  user-select: none;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 120px;
+}
+
+/* header and content helpers */
+.window .window-header { flex: 0 0 auto; }
+.window .window-content { flex: 1 1 auto; padding: 12px; }
+
+/* accessibility */
+.window:focus-within { outline: 2px solid rgba(158,203,255,0.12); }
+
+/* responsive: make windows full width on small screens */
+@media (max-width: 900px) {
+  .window { grid-column: 1 / -1; }
+}
+
+/* optional: allow different spans */
+.window.span-3 { grid-column: span 3; }
+.window.span-4 { grid-column: span 4; }
+.window.span-6 { grid-column: span 6; }
+.window.span-12 { grid-column: 1 / -1; }
+
     .window-header {
       display: flex; align-items: center; gap: 10px;
       padding: 10px 12px;
@@ -388,6 +416,23 @@
   </div>
 </div>
 
+<!-- GitHub window -->
+<div class="window" id="githubWin" style="width:360px;">
+  <div class="window-header">
+    <div class="traffic">
+      <span class="dot red"></span>
+      <span class="dot yellow"></span>
+      <span class="dot green"></span>
+    </div>
+    <div class="title">GitHub</div>
+  </div>
+
+  <div class="window-content" style="padding:12px; background:#07101a;">
+    <div id="githubSummary" style="font-family:monospace; color:#9ecbff; margin-bottom:8px;"></div>
+    <ul id="githubRepos" style="list-style:none; padding:0; margin:0; color:#cbd5e1; font-family:monospace;"></ul>
+  </div>
+</div>
+
 
   <!-- Settings popup -->
 <div id="settingsPopup" style="
@@ -497,7 +542,11 @@
 ">
 💾 Save Hackatime Settings
 </button>
-
+<label style="display:block; margin-top:12px; margin-bottom:8px;">
+  GitHub Username
+  <input id="githubUsername" type="text" placeholder="github username (optional)" />
+</label>
+<button id="saveGithubBtn">Save GitHub</button>
 
 </div>
 
@@ -591,80 +640,98 @@ document.addEventListener('DOMContentLoaded', () => {
   const BASE_V1 = 'https://hackatime.hackclub.com/api/v1';
   const BASE_HACKATIME_V1 = 'https://hackatime.hackclub.com/api/hackatime/v1';
 
-  // Settings inputs (must exist in your settings popup)
+  // Settings inputs
   const usernameInput = document.getElementById('hackatimeUsername');
   const keyInput = document.getElementById('hackatimeKey');
-  const saveBtn = document.getElementById('saveHackatimeBtn');
+  const saveHackatimeBtn = document.getElementById('saveHackatimeBtn');
 
-  // Hackatime window elements (must exist in your window HTML)
-  const win = document.getElementById('hackatimeWin'); // outer window div
+  const githubInput = document.getElementById('githubUsername');
+  const saveGithubBtn = document.getElementById('saveGithubBtn');
+
+  // Hackatime UI
   const summaryEl = document.getElementById('hackatimeSummary');
   const table = document.getElementById('hackatimeTable');
   const tbody = table.querySelector('tbody');
   const projectsWrap = document.getElementById('hackatimeProjects');
   const projectsList = document.getElementById('hackatimeProjectsList');
 
-  // Small helper to show a transient status message (removed after success)
-  function showTempMessage(msg) {
-    summaryEl.textContent = msg;
-  }
-
-  function clearTempMessage() {
-    // Only clear if the content is a loading message (avoid erasing real data)
-    if (summaryEl.dataset.loading === 'true') {
-      summaryEl.textContent = '';
-      delete summaryEl.dataset.loading;
-    }
-  }
+  // GitHub UI
+  const githubSummary = document.getElementById('githubSummary');
+  const githubRepos = document.getElementById('githubRepos');
 
   function loadSettings() {
     const s = JSON.parse(localStorage.getItem('settings')) || {};
     usernameInput.value = s.hackatimeUsername || '';
     keyInput.value = s.hackatimeKey || '';
+    githubInput.value = s.githubUsername || '';
+
     if (s.hackatimeUsername && s.hackatimeKey) {
-      refreshAll(s.hackatimeUsername, s.hackatimeKey);
+      refreshHackatime(s.hackatimeUsername, s.hackatimeKey);
     } else {
-      // keep window styled but empty until user saves settings
       summaryEl.textContent = '';
       table.style.display = 'none';
       projectsWrap.style.display = 'none';
     }
+
+    if (s.githubUsername) {
+      refreshGithub(s.githubUsername);
+    } else {
+      githubSummary.textContent = '';
+      githubRepos.innerHTML = '';
+    }
   }
 
-  saveBtn.addEventListener('click', () => {
-    const settings = {
-      hackatimeUsername: usernameInput.value.trim(),
-      hackatimeKey: keyInput.value.trim()
-    };
+  function saveSettings() {
+    const settings = JSON.parse(localStorage.getItem('settings')) || {};
+    settings.hackatimeUsername = usernameInput.value.trim();
+    settings.hackatimeKey = keyInput.value.trim();
+    settings.githubUsername = githubInput.value.trim();
     localStorage.setItem('settings', JSON.stringify(settings));
-    if (settings.hackatimeUsername && settings.hackatimeKey) {
-      refreshAll(settings.hackatimeUsername, settings.hackatimeKey);
-    } else {
-      summaryEl.textContent = 'Please enter both username and API key.';
+    return settings;
+  }
+
+  saveHackatimeBtn.addEventListener('click', () => {
+    const s = saveSettings();
+    if (s.hackatimeUsername && s.hackatimeKey) refreshHackatime(s.hackatimeUsername, s.hackatimeKey);
+    else {
+      summaryEl.textContent = 'Please enter both Hackatime username and API key.';
       table.style.display = 'none';
       projectsWrap.style.display = 'none';
     }
   });
 
-  async function refreshAll(username, apiKey) {
-    // UI reset
+  saveGithubBtn.addEventListener('click', () => {
+    const s = saveSettings();
+    if (s.githubUsername) refreshGithub(s.githubUsername);
+    else {
+      githubSummary.textContent = 'Enter a GitHub username to load repos.';
+      githubRepos.innerHTML = '';
+    }
+  });
+
+  // --- Hackatime functions ---
+  async function refreshHackatime(username, apiKey) {
+    // reset UI
     summaryEl.textContent = '';
     summaryEl.dataset.loading = 'true';
-    showTempMessage('Loading Hackatime stats...');
+    summaryEl.textContent = 'Loading Hackatime...';
     tbody.innerHTML = '';
     table.style.display = 'none';
     projectsList.innerHTML = '';
     projectsWrap.style.display = 'none';
 
-    // Run calls in parallel where possible
-    await Promise.allSettled([
-      fetchTodayStatus(apiKey),
-      fetchUserStats(username, apiKey),
-      fetchUserProjects(username, apiKey)
-    ]);
+    // fetch today and stats in parallel
+    const p1 = fetchTodayStatus(apiKey);
+    const p2 = fetchUserStats(username, apiKey);
+    const p3 = fetchUserProjects(username, apiKey);
 
-    // Remove the loading message once any data has been rendered
-    clearTempMessage();
+    await Promise.allSettled([p1, p2, p3]);
+
+    // remove loading marker
+    if (summaryEl.dataset.loading === 'true') {
+      delete summaryEl.dataset.loading;
+      if (summaryEl.textContent === 'Loading Hackatime...') summaryEl.textContent = '';
+    }
   }
 
   async function fetchTodayStatus(apiKey) {
@@ -672,7 +739,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const url = `${BASE_HACKATIME_V1}/users/current/statusbar/today?api_key=${encodeURIComponent(apiKey)}`;
       const res = await fetch(url);
       if (!res.ok) {
-        // don't throw for 401/403/404 here; just log and continue
         console.warn('Today status fetch failed', res.status);
         return;
       }
@@ -680,9 +746,13 @@ document.addEventListener('DOMContentLoaded', () => {
       const text = json?.data?.grand_total?.text || null;
       const seconds = json?.data?.grand_total?.total_seconds || 0;
       const todayLine = text ? `Today: ${text}` : `Today: ${(seconds / 3600).toFixed(2)} hrs`;
-      // Prepend to summary but don't overwrite later totals
+
+      // show only today's time (replace previous today line if present)
+      // If totals already present, keep them and prepend today
       const prev = summaryEl.textContent || '';
-      summaryEl.textContent = prev ? `${todayLine} • ${prev}` : todayLine;
+      // Remove any previous "Today:" prefix to avoid duplicates
+      const cleaned = prev.replace(/^Today:[^•]*•\s?/, '');
+      summaryEl.textContent = cleaned ? `${todayLine} • ${cleaned}` : todayLine;
     } catch (err) {
       console.error('fetchTodayStatus error', err);
     }
@@ -699,21 +769,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       const data = await res.json();
 
-      // Build summary lines (total seconds/hours)
+      // totals
       const totalSeconds = data?.total_seconds || 0;
       const totalHours = (totalSeconds / 3600).toFixed(2);
       const totalsLine = `Total: ${totalHours} hrs`;
-      // Merge with any existing summary (today)
       const prev = summaryEl.textContent || '';
-      summaryEl.textContent = prev ? `${prev} • ${totalsLine}` : totalsLine;
+      // Avoid duplicating totals
+      const cleanedPrev = prev.replace(/Total:[^•]*•\s?/, '');
+      summaryEl.textContent = cleanedPrev ? `${cleanedPrev} • ${totalsLine}` : totalsLine;
 
-      // Render top languages into the main table
+      // languages
       renderLanguages(data?.languages || []);
-
-      // If projects are included in stats payload, render them too (some APIs include projects)
-      if (Array.isArray(data?.projects) && data.projects.length) {
-        renderProjects(data.projects);
-      }
+      // if projects included in stats payload, render them
+      if (Array.isArray(data?.projects) && data.projects.length) renderProjects(data.projects);
     } catch (err) {
       console.error('fetchUserStats error', err);
       summaryEl.textContent = 'Error fetching user stats.';
@@ -729,7 +797,6 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
       }
       const data = await res.json();
-      // API may return an array or an object; handle both
       const projects = Array.isArray(data) ? data : data?.projects || [];
       if (projects.length) renderProjects(projects);
     } catch (err) {
@@ -738,11 +805,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderLanguages(languages) {
-    if (!Array.isArray(languages) || languages.length === 0) {
-      // keep table hidden if no languages
-      return;
-    }
-    // Ensure header shows Language / Time
+    if (!Array.isArray(languages) || languages.length === 0) return;
     const headerRow = table.querySelector('thead tr');
     headerRow.innerHTML = `
       <th style="padding:6px; border:1px solid #12202a;">Language</th>
@@ -791,9 +854,60 @@ document.addEventListener('DOMContentLoaded', () => {
     return parts.join(' ');
   }
 
+  // --- GitHub integration ---
+  async function refreshGithub(githubUsername) {
+    githubSummary.textContent = 'Loading GitHub...';
+    githubRepos.innerHTML = '';
+    try {
+      // Basic profile
+      const profileRes = await fetch(`https://api.github.com/users/${encodeURIComponent(githubUsername)}`);
+      if (!profileRes.ok) {
+        githubSummary.textContent = 'GitHub user not found.';
+        return;
+      }
+      const profile = await profileRes.json();
+      githubSummary.textContent = `${profile.login} • ${profile.public_repos} repos • ${profile.followers} followers`;
+
+      // Top repos (by stargazers, fetch first page then sort)
+      const reposRes = await fetch(`https://api.github.com/users/${encodeURIComponent(githubUsername)}/repos?per_page=100`);
+      if (!reposRes.ok) {
+        githubRepos.innerHTML = '<li>Unable to load repos.</li>';
+        return;
+      }
+      const repos = await reposRes.json();
+      // sort by stargazers_count desc then updated_at
+      repos.sort((a, b) => (b.stargazers_count - a.stargazers_count) || (new Date(b.updated_at) - new Date(a.updated_at)));
+      githubRepos.innerHTML = '';
+      repos.slice(0, 8).forEach(r => {
+        const li = document.createElement('li');
+        li.style.padding = '6px 0';
+        li.style.borderBottom = '1px dashed rgba(255,255,255,0.03)';
+        const a = document.createElement('a');
+        a.href = r.html_url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        a.style.color = '#cbd5e1';
+        a.textContent = `${r.name} (${r.stargazers_count}★)`;
+        li.appendChild(a);
+        if (r.description) {
+          const desc = document.createElement('div');
+          desc.style.fontSize = '12px';
+          desc.style.color = '#9fb3c8';
+          desc.textContent = r.description;
+          li.appendChild(desc);
+        }
+        githubRepos.appendChild(li);
+      });
+    } catch (err) {
+      console.error('refreshGithub error', err);
+      githubSummary.textContent = 'Error loading GitHub.';
+    }
+  }
+
   // Initialize
   loadSettings();
 });
+
 </script>
 </body>
 </html>
