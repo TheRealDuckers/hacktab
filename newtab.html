@@ -650,97 +650,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  async function fetchHackatimeSummaries(apiKey) {
-    try {
-      const res = await fetch(`https://hackatime.hackclub.com/api/v1/users/current/summaries?range=last_7_days`, {
-        headers: { Authorization: `Bearer ${apiKey}` }
-      });
-      if (!res.ok) throw new Error("API error");
-      const data = await res.json();
+  async function fetchHackatimeSummaries(username, apiKey) {
+  const url = `https://hackatime.hackclub.com/api/v1/users/${encodeURIComponent(username)}/summaries?range=last_7_days`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${apiKey}` }
+  });
+  if (!res.ok) throw new Error("API error");
+  return res.json();
+}
 
-      const total = data.data.reduce((sum, day) => sum + day.grand_total.total_seconds, 0);
-      const hours = (total / 3600).toFixed(2);
-      hackatimeStats.textContent = `Last 7 days: ${hours} hrs coded`;
+async function fetchHackatimeStats(username, apiKey) {
+  const url = `https://hackatime.hackclub.com/api/v1/users/${encodeURIComponent(username)}/stats`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${apiKey}` }
+  });
+  if (!res.ok) throw new Error("API error");
+  return res.json();
+}
 
-      const tbody = hackatimeTable.querySelector('tbody');
-      tbody.innerHTML = "";
-      data.data.forEach(day => {
-        const tr = document.createElement('tr');
-        const dateCell = document.createElement('td');
-        const hoursCell = document.createElement('td');
+async function fetchHackatimeProjects(username, apiKey) {
+  const url = `https://hackatime.hackclub.com/api/v1/users/${encodeURIComponent(username)}/projects`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${apiKey}` }
+  });
+  if (!res.ok) throw new Error("API error");
+  return res.json();
+}
 
-        dateCell.textContent = day.range.date;
-        dateCell.style.padding = "6px";
-        dateCell.style.border = "1px solid #1b2330";
-
-        const hrs = (day.grand_total.total_seconds / 3600).toFixed(2);
-        hoursCell.textContent = hrs;
-        hoursCell.style.padding = "6px";
-        hoursCell.style.border = "1px solid #1b2330";
-
-        tr.appendChild(dateCell);
-        tr.appendChild(hoursCell);
-        tbody.appendChild(tr);
-      });
-
-      hackatimeTable.style.display = "table";
-    } catch (err) {
-      hackatimeStats.textContent = "Error fetching summaries.";
-      hackatimeTable.style.display = "none";
-      console.error(err);
-    }
-  }
-
-  async function fetchHackatimeStats(apiKey) {
-    try {
-      const res = await fetch(`https://hackatime.hackclub.com/api/v1/users/current/stats`, {
-        headers: { Authorization: `Bearer ${apiKey}` }
-      });
-      if (!res.ok) throw new Error("API error");
-      const data = await res.json();
-
-      // Example: show top languages
-      if (data.languages && data.languages.length) {
-        const tbody = hackatimeTable.querySelector('tbody');
-        const headerRow = hackatimeTable.querySelector('thead tr');
-        headerRow.innerHTML = "<th>Language</th><th>Time</th>";
-        tbody.innerHTML = "";
-        data.languages.slice(0, 10).forEach(lang => {
-          const tr = document.createElement('tr');
-          const nameCell = document.createElement('td');
-          const timeCell = document.createElement('td');
-          nameCell.textContent = lang.name;
-          nameCell.style.padding = "6px";
-          nameCell.style.border = "1px solid #1b2330";
-          timeCell.textContent = lang.text;
-          timeCell.style.padding = "6px";
-          timeCell.style.border = "1px solid #1b2330";
-          tr.appendChild(nameCell);
-          tr.appendChild(timeCell);
-          tbody.appendChild(tr);
-        });
-        hackatimeTable.style.display = "table";
-      }
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  async function fetchHackatimeProjects(apiKey) {
-    try {
-      const res = await fetch(`https://hackatime.hackclub.com/api/v1/users/current/projects`, {
-        headers: { Authorization: `Bearer ${apiKey}` }
-      });
-      if (!res.ok) throw new Error("API error");
-      const data = await res.json();
-
-      // Example: log top projects
-      console.log("Projects:", data);
-      // You can render them in another window or extend hackatimeTable
-    } catch (err) {
-      console.error(err);
-    }
-  }
 
   function injectGreeting(name) {
     const oldGreeting = term1.querySelector('.greetingLine');
