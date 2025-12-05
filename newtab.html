@@ -634,7 +634,140 @@
     }
     makeDraggable('win1');
     makeDraggable('win2');
-    
+document.addEventListener('DOMContentLoaded', () => {
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsPopup = document.getElementById('settingsPopup');
+  const closeSettings = document.getElementById('closeSettings');
+
+  const darkModeToggle = document.getElementById('darkModeToggle');
+  const showShortcutsToggle = document.getElementById('showShortcutsToggle');
+  const animatedBgToggle = document.getElementById('animatedBgToggle');
+
+  const nameInput = document.getElementById('nameInput');
+  const saveNameBtn = document.getElementById('saveNameBtn');
+
+  const hackatimeUsernameInput = document.getElementById('hackatimeUsername');
+  const hackatimeKeyInput = document.getElementById('hackatimeKey');
+  const saveHackatimeBtn = document.getElementById('saveHackatimeBtn');
+
+  const githubUsernameInput = document.getElementById('githubUsername');
+  const saveGithubBtn = document.getElementById('saveGithubBtn');
+
+  function getSettings() {
+    return JSON.parse(localStorage.getItem('settings')) || {};
+  }
+
+  function saveSettings(settings) {
+    localStorage.setItem('settings', JSON.stringify(settings));
+    applySettings(settings);
+  }
+
+  function applySettings(settings) {
+    document.body.classList.toggle('dark', !!settings.darkMode);
+    const win2 = document.getElementById('win2');
+    if (win2) win2.style.display = settings.showShortcuts === false ? 'none' : '';
+    const matrix = document.querySelector('.matrix');
+    if (matrix) matrix.style.display = settings.animatedBg === false ? 'none' : '';
+  }
+
+  function loadSettingsToUI() {
+    const s = getSettings();
+    darkModeToggle.checked = !!s.darkMode;
+    showShortcutsToggle.checked = s.showShortcuts !== false;
+    animatedBgToggle.checked = s.animatedBg !== false;
+    nameInput.value = s.name || '';
+    hackatimeUsernameInput.value = s.hackatimeUsername || '';
+    hackatimeKeyInput.value = s.hackatimeKey || '';
+    githubUsernameInput.value = s.githubUsername || '';
+    applySettings(s);
+  }
+
+  function updateAndSaveFromUI() {
+    const current = getSettings();
+    const updated = {
+      ...current,
+      darkMode: !!darkModeToggle.checked,
+      showShortcuts: !!showShortcutsToggle.checked,
+      animatedBg: !!animatedBgToggle.checked,
+      name: nameInput.value.trim(),
+      hackatimeUsername: hackatimeUsernameInput.value.trim(),
+      hackatimeKey: hackatimeKeyInput.value.trim(),
+      githubUsername: githubUsernameInput.value.trim()
+    };
+    saveSettings(updated);
+    return updated;
+  }
+
+  settingsBtn?.addEventListener('click', () => {
+    if (settingsPopup) settingsPopup.style.display = 'block';
+  });
+
+  closeSettings?.addEventListener('click', () => {
+    if (settingsPopup) settingsPopup.style.display = 'none';
+  });
+
+  darkModeToggle?.addEventListener('change', () => {
+    updateAndSaveFromUI();
+  });
+
+  showShortcutsToggle?.addEventListener('change', () => {
+    updateAndSaveFromUI();
+  });
+
+  animatedBgToggle?.addEventListener('change', () => {
+    updateAndSaveFromUI();
+  });
+
+  saveNameBtn?.addEventListener('click', () => {
+    const s = updateAndSaveFromUI();
+    // inject greeting if terminal exists
+    const term = document.getElementById('term1');
+    if (term && s.name) {
+      const oldG = term.querySelector('.greetingLine');
+      if (oldG) oldG.remove();
+      const oldO = term.querySelector('.greetingOutput');
+      if (oldO) oldO.remove();
+
+      const greetingLine = document.createElement('span');
+      greetingLine.className = 'line greetingLine';
+      greetingLine.textContent = `$ echo "Hello, ${s.name}!"`;
+      term.appendChild(greetingLine);
+
+      const outputLine = document.createElement('span');
+      outputLine.className = 'line greetingOutput';
+      outputLine.textContent = `Hello, ${s.name}!`;
+      term.appendChild(outputLine);
+    }
+    alert(`Name saved as "${s.name}"`);
+  });
+
+  saveHackatimeBtn?.addEventListener('click', () => {
+    const s = updateAndSaveFromUI();
+    alert('Hackatime settings saved.');
+    // optional: trigger a refresh if your hackatime functions exist
+    if (typeof refreshHackatime === 'function' && s.hackatimeUsername && s.hackatimeKey) {
+      refreshHackatime(s.hackatimeUsername, s.hackatimeKey);
+    }
+  });
+
+  saveGithubBtn?.addEventListener('click', () => {
+    const s = updateAndSaveFromUI();
+    alert('GitHub username saved.');
+    if (typeof refreshGithub === 'function' && s.githubUsername) {
+      refreshGithub(s.githubUsername);
+    }
+  });
+
+  // keyboard: close settings on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && settingsPopup && settingsPopup.style.display === 'block') {
+      settingsPopup.style.display = 'none';
+    }
+  });
+
+  loadSettingsToUI();
+});
+  
 
 document.addEventListener('DOMContentLoaded', () => {
   const BASE_V1 = 'https://hackatime.hackclub.com/api/v1';
