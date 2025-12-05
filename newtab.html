@@ -568,111 +568,31 @@
     makeDraggable('win1');
     makeDraggable('win2');
 
-// Settings popup logic
-const settingsBtn = document.getElementById('settingsBtn');
-const settingsPopup = document.getElementById('settingsPopup');
-const closeSettings = document.getElementById('closeSettings');
-
-const darkModeToggle = document.getElementById('darkModeToggle');
-const showShortcutsToggle = document.getElementById('showShortcutsToggle');
-const animatedBgToggle = document.getElementById('animatedBgToggle');
-const nameInput = document.getElementById('nameInput');
-
-settingsBtn.addEventListener('click', () => {
-  settingsPopup.style.display = 'block';
-});
-
-closeSettings.addEventListener('click', () => {
-  settingsPopup.style.display = 'none';
-});
-
-// Load saved settings
-function loadSettings() {
-  const settings = JSON.parse(localStorage.getItem('settings')) || {};
-  darkModeToggle.checked = settings.darkMode || false;
-  showShortcutsToggle.checked = settings.showShortcuts !== false; // default true
-  animatedBgToggle.checked = settings.animatedBg !== false; // default true
-  nameInput.value = settings.name || '';
-
-  applySettings(settings);
-}
-
-// Apply settings to page
-function applySettings(settings) {
-  document.body.style.background = settings.darkMode ? '#000' : '';
-  document.getElementById('win2').style.display = settings.showShortcuts ? '' : 'none';
-  document.querySelector('.matrix').style.display = settings.animatedBg ? '' : 'none';
-}
-
-// Save settings
-function saveSettings() {
-  const settings = {
-    darkMode: darkModeToggle.checked,
-    showShortcuts: showShortcutsToggle.checked,
-    animatedBg: animatedBgToggle.checked,
-    name: nameInput.value.trim()
-  };
-  localStorage.setItem('settings', JSON.stringify(settings));
-  applySettings(settings);
-}
-
-darkModeToggle.addEventListener('change', saveSettings);
-showShortcutsToggle.addEventListener('change', saveSettings);
-animatedBgToggle.addEventListener('change', saveSettings);
-nameInput.addEventListener('input', saveSettings);
-
-
-loadSettings();
-
-
-
-const settings = JSON.parse(localStorage.getItem('settings')) || {};
-
-
-const savedName = settings.name || "";
-
-
-const term1 = document.getElementById('term1');
-if (savedName) {
-
-  const outputLine = document.createElement('span');
-  outputLine.className = 'line';
-  outputLine.textContent = `Hello, ${savedName}!`;
-  term1.appendChild(outputLine);
-}
-
-
-const saveNameBtn = document.getElementById('saveNameBtn');
-
-saveNameBtn.addEventListener('click', () => {
-  const settings = JSON.parse(localStorage.getItem('settings')) || {};
-  settings.name = nameInput.value.trim();
-  localStorage.setItem('settings', JSON.stringify(settings));
-
-
-  alert(`Name saved as "${settings.name}"`);
-});
-
-const hackatimeKeyInput = document.getElementById('hackatimeKey');
-const saveHackatimeBtn = document.getElementById('saveHackatimeBtn');
-const hackatimeStats = document.getElementById('hackatimeStats');
-
-// Save API key
-saveHackatimeBtn.addEventListener('click', () => {
-  const settings = JSON.parse(localStorage.getItem('settings')) || {};
-  settings.hackatimeKey = hackatimeKeyInput.value.trim();
-  localStorage.setItem('settings', JSON.stringify(settings));
-  alert("Hackatime API key saved!");
-  fetchHackatimeStats();
-});
-
 document.addEventListener('DOMContentLoaded', () => {
+  const settingsBtn = document.getElementById('settingsBtn');
+  const settingsPopup = document.getElementById('settingsPopup');
+  const closeSettings = document.getElementById('closeSettings');
+
   const darkModeToggle = document.getElementById('darkModeToggle');
   const showShortcutsToggle = document.getElementById('showShortcutsToggle');
   const animatedBgToggle = document.getElementById('animatedBgToggle');
   const nameInput = document.getElementById('nameInput');
+  const saveNameBtn = document.getElementById('saveNameBtn');
+
   const hackatimeKeyInput = document.getElementById('hackatimeKey');
+  const saveHackatimeBtn = document.getElementById('saveHackatimeBtn');
   const hackatimeStats = document.getElementById('hackatimeStats');
+  const hackatimeTable = document.getElementById('hackatimeTable');
+
+  const term1 = document.getElementById('term1');
+
+  settingsBtn.addEventListener('click', () => {
+    settingsPopup.style.display = 'block';
+  });
+
+  closeSettings.addEventListener('click', () => {
+    settingsPopup.style.display = 'none';
+  });
 
   function loadSettings() {
     const settings = JSON.parse(localStorage.getItem('settings')) || {};
@@ -684,61 +604,113 @@ document.addEventListener('DOMContentLoaded', () => {
 
     applySettings(settings);
     if (settings.hackatimeKey) fetchHackatimeStats();
+    if (settings.name) injectGreeting(settings.name);
+  }
+
+  function applySettings(settings) {
+    document.body.style.background = settings.darkMode ? '#000' : '';
+    document.getElementById('win2').style.display = settings.showShortcuts ? '' : 'none';
+    document.querySelector('.matrix').style.display = settings.animatedBg ? '' : 'none';
+  }
+
+  function saveSettings() {
+    const settings = {
+      darkMode: darkModeToggle.checked,
+      showShortcuts: showShortcutsToggle.checked,
+      animatedBg: animatedBgToggle.checked,
+      name: nameInput.value.trim(),
+      hackatimeKey: hackatimeKeyInput.value.trim()
+    };
+    localStorage.setItem('settings', JSON.stringify(settings));
+    applySettings(settings);
+    if (settings.name) injectGreeting(settings.name);
+  }
+
+  darkModeToggle.addEventListener('change', saveSettings);
+  showShortcutsToggle.addEventListener('change', saveSettings);
+  animatedBgToggle.addEventListener('change', saveSettings);
+
+  saveNameBtn.addEventListener('click', () => {
+    saveSettings();
+    alert(`Name saved as "${nameInput.value.trim()}"`);
+  });
+
+  saveHackatimeBtn.addEventListener('click', () => {
+    saveSettings();
+    alert("Hackatime API key saved!");
+    fetchHackatimeStats();
+  });
+
+  async function fetchHackatimeStats() {
+    const settings = JSON.parse(localStorage.getItem('settings')) || {};
+    if (!settings.hackatimeKey) {
+      hackatimeStats.textContent = "No API key set.";
+      hackatimeTable.style.display = "none";
+      return;
+    }
+
+    try {
+      const res = await fetch("https://hackatime.com/api/v1/users/current/summaries?range=last_7_days", {
+        headers: { "Authorization": "Bearer " + settings.hackatimeKey }
+      });
+      if (!res.ok) throw new Error("API error");
+      const data = await res.json();
+
+      const total = data.data.reduce((sum, day) => sum + day.grand_total.total_seconds, 0);
+      const hours = (total / 3600).toFixed(2);
+      hackatimeStats.textContent = `Last 7 days: ${hours} hrs coded`;
+
+      const tbody = hackatimeTable.querySelector('tbody');
+      tbody.innerHTML = "";
+      data.data.forEach(day => {
+        const tr = document.createElement('tr');
+        const dateCell = document.createElement('td');
+        const hoursCell = document.createElement('td');
+
+        dateCell.textContent = day.range.date;
+        dateCell.style.padding = "6px";
+        dateCell.style.border = "1px solid #1b2330";
+
+        const hrs = (day.grand_total.total_seconds / 3600).toFixed(2);
+        hoursCell.textContent = hrs;
+        hoursCell.style.padding = "6px";
+        hoursCell.style.border = "1px solid #1b2330";
+
+        tr.appendChild(dateCell);
+        tr.appendChild(hoursCell);
+        tbody.appendChild(tr);
+      });
+
+      hackatimeTable.style.display = "table";
+    } catch (err) {
+      hackatimeStats.textContent = "Error fetching stats.";
+      hackatimeTable.style.display = "none";
+      console.error(err);
+    }
+  }
+
+  function injectGreeting(name) {
+    // Remove old greeting if present
+    const oldGreeting = term1.querySelector('.greetingLine');
+    if (oldGreeting) oldGreeting.remove();
+    const oldOutput = term1.querySelector('.greetingOutput');
+    if (oldOutput) oldOutput.remove();
+
+    // Add new greeting lines
+    const greetingLine = document.createElement('span');
+    greetingLine.className = 'line greetingLine';
+    greetingLine.textContent = `$ echo "Hello, ${name}!"`;
+    term1.appendChild(greetingLine);
+
+    const outputLine = document.createElement('span');
+    outputLine.className = 'line greetingOutput';
+    outputLine.textContent = `Hello, ${name}!`;
+    term1.appendChild(outputLine);
   }
 
   loadSettings();
 });
 
-
-async function fetchHackatimeStats() {
-  const settings = JSON.parse(localStorage.getItem('settings')) || {};
-  if (!settings.hackatimeKey) {
-    hackatimeStats.textContent = "No API key set.";
-    return;
-  }
-
-  try {
-    const res = await fetch("https://hackatime.com/api/v1/users/current/summaries?range=last_7_days", {
-      headers: { "Authorization": "Bearer " + settings.hackatimeKey }
-    });
-    if (!res.ok) throw new Error("API error");
-    const data = await res.json();
-
-    // Summary
-    const total = data.data.reduce((sum, day) => sum + day.grand_total.total_seconds, 0);
-    const hours = (total / 3600).toFixed(2);
-    hackatimeStats.textContent = `Last 7 days: ${hours} hrs coded`;
-
-    // Daily breakdown
-    const table = document.getElementById('hackatimeTable');
-    const tbody = table.querySelector('tbody');
-    tbody.innerHTML = ""; // clear old rows
-
-    data.data.forEach(day => {
-      const tr = document.createElement('tr');
-      const dateCell = document.createElement('td');
-      const hoursCell = document.createElement('td');
-
-      dateCell.textContent = day.range.date;
-      dateCell.style.padding = "6px";
-      dateCell.style.border = "1px solid #1b2330";
-
-      const hrs = (day.grand_total.total_seconds / 3600).toFixed(2);
-      hoursCell.textContent = hrs;
-      hoursCell.style.padding = "6px";
-      hoursCell.style.border = "1px solid #1b2330";
-
-      tr.appendChild(dateCell);
-      tr.appendChild(hoursCell);
-      tbody.appendChild(tr);
-    });
-
-    table.style.display = "table";
-  } catch (err) {
-    hackatimeStats.textContent = "Error fetching stats.";
-    console.error(err);
-  }
-}
 
 
   </script>
