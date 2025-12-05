@@ -666,18 +666,29 @@ saveHackatimeBtn.addEventListener('click', () => {
   fetchHackatimeStats();
 });
 
-// Load settings (extend your existing loadSettings function)
-function loadSettings() {
-  const settings = JSON.parse(localStorage.getItem('settings')) || {};
-  darkModeToggle.checked = settings.darkMode || false;
-  showShortcutsToggle.checked = settings.showShortcuts !== false;
-  animatedBgToggle.checked = settings.animatedBg !== false;
-  nameInput.value = settings.name || '';
-  hackatimeKeyInput.value = settings.hackatimeKey || '';
+document.addEventListener('DOMContentLoaded', () => {
+  const darkModeToggle = document.getElementById('darkModeToggle');
+  const showShortcutsToggle = document.getElementById('showShortcutsToggle');
+  const animatedBgToggle = document.getElementById('animatedBgToggle');
+  const nameInput = document.getElementById('nameInput');
+  const hackatimeKeyInput = document.getElementById('hackatimeKey');
+  const hackatimeStats = document.getElementById('hackatimeStats');
 
-  applySettings(settings);
-  if (settings.hackatimeKey) fetchHackatimeStats();
-}
+  function loadSettings() {
+    const settings = JSON.parse(localStorage.getItem('settings')) || {};
+    darkModeToggle.checked = settings.darkMode || false;
+    showShortcutsToggle.checked = settings.showShortcuts !== false;
+    animatedBgToggle.checked = settings.animatedBg !== false;
+    nameInput.value = settings.name || '';
+    hackatimeKeyInput.value = settings.hackatimeKey || '';
+
+    applySettings(settings);
+    if (settings.hackatimeKey) fetchHackatimeStats();
+  }
+
+  loadSettings();
+});
+
 
 async function fetchHackatimeStats() {
   const settings = JSON.parse(localStorage.getItem('settings')) || {};
