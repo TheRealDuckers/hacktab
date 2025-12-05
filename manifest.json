@@ -1,10 +1,13 @@
 {
-  "name": "Hello Extensions",
-  "description": "Base Level Extension",
+  "name": "hacktab",
+  "description": "a better new tab for hackers (of the Hack Club variety)",
   "version": "1.0",
   "manifest_version": 3,
   "action": {
-    "default_popup": "hello.html",
-    "default_icon": "hello_extensions.png"
+    "default_popup": "popup.html",
+    "default_icon": "icon-rounded.png"
+  },
+  "chrome_url_overrides": {
+    "newtab": "newtab.html"
   }
 }
