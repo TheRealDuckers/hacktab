@@ -1,2 +1,17 @@
 # hacktab
 A better new tab for Hack Clubbers
+
+[Open a new tab →](https://therealduckers.github.io/hacktab/newtab)
+[Open in GitHub →](https://github.com/TheRealDuckers/hacktab)
+
+## How to install (Chrome/Edge)
+| **Chrome** | **Edge** |
+|------------|----------|
+| Download Hacktab source from [The Real Duckers GitHub repo](https://github.com/TheRealDuckers/hacktab) | Download Hacktab source from [The Real Duckers GitHub repo](https://github.com/TheRealDuckers/hacktab) |
+| Extract the ZIP file to a folder | Extract the ZIP file to a folder |
+| Open `chrome://extensions/` | Open `edge://extensions/` |
+| Enable Developer Mode (toggle top right) | Enable Developer Mode (toggle bottom left) |
+| Click “Load unpacked” and select the Hacktab folder | Click “Load unpacked” and select the Hacktab folder |
+| Hacktab appears as your new tab extension | Hacktab appears as your new tab extension |
+
+
