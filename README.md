@@ -1,7 +1,7 @@
 
 ![hacktab logo](https://therealduckers.github.io/cdn/hacktab-logo.gif)
 <div align="center">
-A better new tab for [Hack Clubbers](hackclub.com) 
+A better new tab for <a href="https://hackclub.com">hack clubbers</a>
 
 ***
 
