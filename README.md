@@ -9,6 +9,8 @@ A better new tab for <a href="https://hackclub.com">hack clubbers</a>
 <br>
 [Open in GitHub →](https://github.com/TheRealDuckers/hacktab)
 
+***
+
 ## How to install (Chrome/Edge)
 | **Chrome** | **Edge** |
 |------------|----------|
