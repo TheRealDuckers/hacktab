@@ -517,27 +517,6 @@ html.theme-green {
             <div class="window-content">
               <ul style="list-style:none; padding:0; margin:0; display:grid; gap:10px;" id="shortcutList">
               </ul>
-              <form class="addShortcut" id="shortcutForm">
-                  <input 
-                    id="shortcutName" 
-                    name="Name"
-                    type="text"
-                    placeholder="Shortcut Name"
-                    autocomplete="off"
-                    aria-label="Shortcut name"
-                  />
-                  <input
-                    id="shortcutURL"
-                    name="URL"
-                    type="text"
-                    placeholder="URL"
-                    autocomplete="off"
-                    aria-label="Shortcut URL"
-                  />
-                  <button type="button" id="saveShortcutButton">Add</button>
-                </form>
-                <button type="button" id="clearCustomShortcuts">Clear Custom Shortcuts</button>
-            </div>
           </div>
  
 
@@ -683,6 +662,27 @@ html.theme-green {
   <input id="githubUsername" type="text" placeholder="github username (optional)" />
 </label>
 <button id="saveGithubBtn">Save GitHub</button>
+<form class="addShortcut" id="shortcutForm">
+  <input 
+    id="shortcutName" 
+    name="Name"
+    type="text"
+    placeholder="Shortcut Name"
+    autocomplete="off"
+    aria-label="Shortcut name"
+    />
+    <input
+    id="shortcutURL"
+    name="URL"
+     type="text"
+    placeholder="URL"
+    autocomplete="off"
+    aria-label="Shortcut URL"
+     />
+   <button type="button" id="saveShortcutButton">Add</button>
+    </form>
+    <button type="button" id="clearCustomShortcuts">Clear Custom Shortcuts</button>
+  </div>
 
 </div>
 </body>

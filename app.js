@@ -381,7 +381,10 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error("invalid URL");
       return;
     }
-    addShortcut(shortcutNameInput.value, shortcutURLInput.value);
+    addShortcut(name, url);
+    shortcutNameInput.value = '';
+    shortcutURLInput.value = '';
+    alert(`Shortcut "${name}" added!`);
   })
 
   clearShortcutsBtn.addEventListener('click', () => { clearShortcuts() });
