@@ -21,6 +21,9 @@ A better new tab for <a href="https://hackclub.com">hack clubbers</a>
 | Click “Load unpacked” and select the Hacktab folder | Click “Load unpacked” and select the Hacktab folder |
 | Hacktab appears as your new tab extension | Hacktab appears as your new tab extension |
 
+## How to get you Hackatime API key
+[Open this link](https://hackatime.hackclub.com/my/wakatime_setup) and scroll down to the code block and your API key will be within the command, copy it out and insert it into box in the settings page
+
 ## Shooting Troubles (otherwise known as TroubleShooting)
 - ensure that you are selecting the root folder - *not* `hacktab > hacktab > *files*`
 - ensure you have no spaces before (or after) you usernames in settings
