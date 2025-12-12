@@ -252,14 +252,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function loadSettingsToUI() {
     const s = getSettings();
-    if (s == {}) return;
-    darkModeToggle.checked = !!s.darkMode;
-    showShortcutsToggle.checked = s.showShortcuts !== false;
-    animatedBgToggle.checked = s.animatedBg !== false;
-    nameInput.value = s.name || '';
-    hackatimeUsernameInput.value = s.hackatimeUsername || '';
-    hackatimeKeyInput.value = s.hackatimeKey || '';
-    githubUsernameInput.value = s.githubUsername || '';
+    if (!s || Object.keys(s).length === 0) return;
+    if (darkModeToggle) darkModeToggle.checked = !!s.darkMode;
+    if (showShortcutsToggle) showShortcutsToggle.checked = s.showShortcuts !== false;
+    if (animatedBgToggle) animatedBgToggle.checked = s.animatedBg !== false;
+    if (nameInput) nameInput.value = s.name || '';
+    if (hackatimeUsernameInput) hackatimeUsernameInput.value = s.hackatimeUsername || '';
+    if (hackatimeKeyInput) hackatimeKeyInput.value = s.hackatimeKey || '';
+    if (githubUsernameInput) githubUsernameInput.value = s.githubUsername || '';
     applySettings(s);
   }
 
@@ -381,7 +381,10 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error("invalid URL");
       return;
     }
-    addShortcut(shortcutNameInput.value, shortcutURLInput.value);
+    addShortcut(name, url);
+    shortcutNameInput.value = '';
+    shortcutURLInput.value = '';
+    alert(`Shortcut "${name}" added!`);
   })
 
   clearShortcutsBtn.addEventListener('click', () => { clearShortcuts() });
