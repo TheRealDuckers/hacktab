@@ -391,6 +391,7 @@ document.addEventListener('DOMContentLoaded', () => {
       new URL(url);
     } catch (_) {
       console.error("invalid URL");
+      alert("Invalid URL. Please remember to include the protocol (http:// or https://).");
       return;
     }
     addShortcut(name, url);
