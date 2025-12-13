@@ -21,11 +21,23 @@ window.refreshHackatime = async function(username, apiKey) {
   if (projectsWrap) projectsWrap.style.display = 'none';
 
   try {
-    // Today’s status
-    const todayRes = await fetch(`${BASE_HACKATIME_V1}/users/current/statusbar/today?api_key=${encodeURIComponent(apiKey)}`);
-    const todayJson = await todayRes.json();
-    const todayText = todayJson?.data?.grand_total?.text || '';
-    summaryEl.textContent = todayText ? `Today: ${todayText}` : 'No coding today';
+    // Today’s status FIXED!????
+    const todayRes = await fetch(
+  `${BASE_HACKATIME_V1}/users/current/statusbar/today?api_key=${encodeURIComponent(apiKey)}`
+);
+const todayJson = await todayRes.json();
+
+const totalSeconds = todayJson?.data?.grand_total?.total_seconds || 0;
+const hours = Math.floor(totalSeconds / 3600);
+const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+const todayText = hours || minutes
+  ? `${hours}h ${minutes}m`
+  : '';
+
+summaryEl.textContent = todayText
+  ? `Today: ${todayText}`
+  : 'No coding today';
 
     // Stats
     const statsRes = await fetch(`${BASE_V1}/users/${encodeURIComponent(username)}/stats?api_key=${encodeURIComponent(apiKey)}`);
