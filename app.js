@@ -57,7 +57,7 @@ window.refreshHackatime = async function(username, apiKey) {
     }
   } catch (err) {
     console.error('Hackatime fetch error', err);
-    summaryEl.textContent = 'Error loading Hackatime, Do you have internet?';
+    summaryEl.textContent = 'Error loading Hackatime, Do you have internet? You should get it, honestly, its really useful.';
   }
 };
 
