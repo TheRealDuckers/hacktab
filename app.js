@@ -42,7 +42,6 @@ summaryEl.textContent = todayText
     // Stats
     const statsRes = await fetch(`${BASE_V1}/users/${encodeURIComponent(username)}/stats?api_key=${encodeURIComponent(apiKey)}`);
     const statsJson = await statsRes.json();
-    const totalSeconds = statsJson?.total_seconds || 0;
     const totalHours = (totalSeconds / 3600).toFixed(2);
     summaryEl.textContent += ` • Total: ${totalHours} hrs`;
 
