@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchTodayStatus(apiKey) {
     try {
-      const url = `${BASE_HACKATIME_V1}/users/current/statusbar/today?api_key=${encodeURIComponent(apiKey)}`;
+      const url = `https://hackatime.hackclub.com/api/hackatime/v1/users/current/statusbar/today?api_key=${encodeURIComponent(apiKey)}`;
       const res = await fetch(url);
       if (!res.ok) {
         console.warn('Today status fetch failed', res.status);
@@ -473,7 +473,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function fetchUserStats(username, apiKey) {
     try {
-      const url = `${BASE_V1}/users/${encodeURIComponent(username)}/stats?api_key=${encodeURIComponent(apiKey)}`;
+      const url = `https://hackatime.hackclub.com/api/v1/users/${encodeURIComponent(username)}/stats?api_key=${encodeURIComponent(apiKey)}`;
       const res = await fetch(url);
       if (!res.ok) {
         console.error('User stats fetch failed', res.status);
