@@ -73,6 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // this made it look better soooo.....
     if (winId === 'win1') { win.style.transform = 'translate(0px, 0px)'; }
     if (winId === 'win2') { win.style.transform = 'translate(0px, 0px)'; }
+    if (winId === 'githubWin') { win.style.transform = 'translate(0px, 0px)'; }
 
     header.addEventListener('mousedown', (e) => {
       isDown = true;
@@ -123,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   makeDraggable('win1');
   makeDraggable('win2');
+  makeDraggable('githubWin');
 });
 document.addEventListener('DOMContentLoaded', () => {
   const settingsBtn = document.getElementById('settingsBtn');
