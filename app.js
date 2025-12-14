@@ -1,76 +1,5 @@
 // app.js
-// Expose refresh functions globally so other scripts can call them
-
-// Hackatime refresh
-window.refreshHackatime = async function(username, apiKey) {
-  const BASE_V1 = 'https://hackatime.hackclub.com/api/v1';
-  const BASE_HACKATIME_V1 = 'https://hackatime.hackclub.com/api/hackatime/v1';
-
-  const summaryEl = document.getElementById('hackatimeSummary');
-  const table = document.getElementById('hackatimeTable');
-  const tbody = table ? table.querySelector('tbody') : null;
-  const projectsWrap = document.getElementById('hackatimeProjects');
-  const projectsList = document.getElementById('hackatimeProjectsList');
-
-  if (!summaryEl) return;
-
-  summaryEl.textContent = 'Loading Hackatime…';
-  if (tbody) tbody.innerHTML = '';
-  if (table) table.style.display = 'none';
-  if (projectsList) projectsList.innerHTML = '';
-  if (projectsWrap) projectsWrap.style.display = 'none';
-
-  try {
-    // Today’s status FIXED!????
-    const todayRes = await fetch(
-  `${BASE_V1}/users/current/statusbar/today?api_key=${encodeURIComponent(apiKey)}`
-);
-const todayJson = await todayRes.json();
-
-const totalSeconds = todayJson?.data?.grand_total?.total_seconds || 0;
-const hours = Math.floor(totalSeconds / 3600);
-const minutes = Math.floor((totalSeconds % 3600) / 60);
-
-const todayText = hours || minutes
-  ? `${hours}h ${minutes}m`
-  : '';
-
-summaryEl.textContent = todayText
-  ? `Today: ${todayText}`
-  : 'No coding today';
-
-    // Stats
-    const statsRes = await fetch(`${BASE_V1}/users/${encodeURIComponent(username)}/stats?api_key=${encodeURIComponent(apiKey)}`);
-    const statsJson = await statsRes.json();
-    const totalHours = (totalSeconds / 3600).toFixed(2);
-    summaryEl.textContent += ` • Total: ${totalHours} hrs`;
-
-    // Languages
-    if (Array.isArray(statsJson?.languages) && tbody) {
-      tbody.innerHTML = '';
-      statsJson.languages.slice(0, 10).forEach(lang => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `<td>${lang.name}</td><td>${lang.text}</td>`;
-        tbody.appendChild(tr);
-      });
-      table.style.display = 'table';
-    }
-
-    // Projects
-    if (Array.isArray(statsJson?.projects) && projectsList) {
-      projectsList.innerHTML = '';
-      statsJson.projects.slice(0, 10).forEach(p => {
-        const li = document.createElement('li');
-        li.textContent = `${p.name} — ${p.text}`;
-        projectsList.appendChild(li);
-      });
-      projectsWrap.style.display = 'block';
-    }
-  } catch (err) {
-    console.error('Hackatime fetch error', err);
-    summaryEl.textContent = 'Error loading Hackatime, Do you have internet? You should get it, honestly, its really useful.';
-  }
-};
+// (Top duplicate refreshHackatime removed — use the robust implementation defined later)
 
 // GitHub refresh
 window.refreshGithub = async function(username) {
@@ -103,106 +32,97 @@ window.refreshGithub = async function(username) {
 };
 
 // Startup: load saved settings and shortcuts once DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  const settings = JSON.parse(localStorage.getItem('settings')) || {};
-  if (settings.hackatimeUsername && settings.hackatimeKey) {
-    window.refreshHackatime(settings.hackatimeUsername, settings.hackatimeKey);
-  }
-  if (settings.githubUsername) {
-    window.refreshGithub(settings.githubUsername);
-  }
-});
-
+// (Initial DOMContentLoaded that used to call the top/global refreshHackatime was removed to avoid calling the wrong/duplicate implementation)
 
 document.addEventListener('DOMContentLoaded', () => {
-    const form = document.getElementById('searchForm');
-    const q = document.getElementById('q');
-    const engine = document.getElementById('engine');
+  const form = document.getElementById('searchForm');
+  const q = document.getElementById('q');
+  const engine = document.getElementById('engine');
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const query = (q.value || '').trim();
-      if (!query) return;
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const query = (q.value || '').trim();
+    if (!query) return;
 
-      const eVal = engine.value;
-      let url = '';
-      if (eVal === 'google') url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
-      else if (eVal === 'duck') url = 'https://duckduckgo.com/?q=' + encodeURIComponent(query);
-      else if (eVal === 'bing') url = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
-      else if (eVal === 'brave') url = 'https://search.brave.com/search?q=' + encodeURIComponent(query);
-      else if (eVal === 'perplexity') url = 'https://www.perplexity.ai/search/?q=' + encodeURIComponent(query);
-      else if (eVal === 'ecosia') url = 'https://www.ecosia.org/search?q=' + encodeURIComponent(query);
-      else if (eVal === 'wikipedia') url = 'https://en.wikipedia.org/w/index.php?search=' + encodeURIComponent(query);
-      else if (eVal === 'firefox') url = 'https://search.firefox.com/?q=' + encodeURIComponent(query);
-      else url = 'https://www.google.com/search?q=' + encodeURIComponent(query); // fallback
+    const eVal = engine.value;
+    let url = '';
+    if (eVal === 'google') url = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+    else if (eVal === 'duck') url = 'https://duckduckgo.com/?q=' + encodeURIComponent(query);
+    else if (eVal === 'bing') url = 'https://www.bing.com/search?q=' + encodeURIComponent(query);
+    else if (eVal === 'brave') url = 'https://search.brave.com/search?q=' + encodeURIComponent(query);
+    else if (eVal === 'perplexity') url = 'https://www.perplexity.ai/search/?q=' + encodeURIComponent(query);
+    else if (eVal === 'ecosia') url = 'https://www.ecosia.org/search?q=' + encodeURIComponent(query);
+    else if (eVal === 'wikipedia') url = 'https://en.wikipedia.org/w/index.php?search=' + encodeURIComponent(query);
+    else if (eVal === 'firefox') url = 'https://search.firefox.com/?q=' + encodeURIComponent(query);
+    else url = 'https://www.google.com/search?q=' + encodeURIComponent(query); // fallback
 
-      window.location.href = url;
+    window.location.href = url;
+  });
+
+  // Terminal date
+  const dateLine = document.getElementById('dateLine');
+  const now = new Date();
+  dateLine.textContent = now.toString();
+
+  // Make window headers draggable cause why not
+  function makeDraggable(winId) {
+    const win = document.getElementById(winId);
+    const header = win.querySelector('.window-header');
+    let isDown = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+    // this made it look better soooo.....
+    if (winId === 'win1') { win.style.transform = 'translate(0px, 0px)'; }
+    if (winId === 'win2') { win.style.transform = 'translate(0px, 0px)'; }
+
+    header.addEventListener('mousedown', (e) => {
+      isDown = true;
+      const rect = win.getBoundingClientRect();
+      startX = e.clientX;
+      startY = e.clientY;
+      startLeft = rect.left;
+      startTop = rect.top;
+      win.style.willChange = 'transform';
     });
 
-    // Terminal date
-    const dateLine = document.getElementById('dateLine');
-    const now = new Date();
-    dateLine.textContent = now.toString();
+    window.addEventListener('mousemove', (e) => {
+      if (!isDown) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      win.style.transform = `translate(${dx}px, ${dy}px)`;
+    });
 
-    // Make window headers draggable cause why not
-    function makeDraggable(winId) {
-      const win = document.getElementById(winId);
-      const header = win.querySelector('.window-header');
-      let isDown = false, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+    window.addEventListener('mouseup', () => {
+      isDown = false;
+      win.style.willChange = 'auto';
+    });
 
-      // this made it look better soooo.....
-      if (winId === 'win1') { win.style.transform = 'translate(0px, 0px)'; }
-      if (winId === 'win2') { win.style.transform = 'translate(0px, 0px)'; }
+    // Touch support
+    header.addEventListener('touchstart', (e) => {
+      const t = e.touches[0];
+      isDown = true;
+      const rect = win.getBoundingClientRect();
+      startX = t.clientX;
+      startY = t.clientY;
+      startLeft = rect.left;
+      startTop = rect.top;
+      win.style.willChange = 'transform';
+    }, { passive: true });
 
-      header.addEventListener('mousedown', (e) => {
-        isDown = true;
-        const rect = win.getBoundingClientRect();
-        startX = e.clientX;
-        startY = e.clientY;
-        startLeft = rect.left;
-        startTop = rect.top;
-        win.style.willChange = 'transform';
-      });
+    window.addEventListener('touchmove', (e) => {
+      if (!isDown) return;
+      const t = e.touches[0];
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      win.style.transform = `translate(${dx}px, ${dy}px)`;
+    }, { passive: true });
 
-      window.addEventListener('mousemove', (e) => {
-        if (!isDown) return;
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        win.style.transform = `translate(${dx}px, ${dy}px)`;
-      });
-
-      window.addEventListener('mouseup', () => {
-        isDown = false;
-        win.style.willChange = 'auto';
-      });
-
-      // Touch support
-      header.addEventListener('touchstart', (e) => {
-        const t = e.touches[0];
-        isDown = true;
-        const rect = win.getBoundingClientRect();
-        startX = t.clientX;
-        startY = t.clientY;
-        startLeft = rect.left;
-        startTop = rect.top;
-        win.style.willChange = 'transform';
-      }, { passive: true });
-
-      window.addEventListener('touchmove', (e) => {
-        if (!isDown) return;
-        const t = e.touches[0];
-        const dx = t.clientX - startX;
-        const dy = t.clientY - startY;
-        win.style.transform = `translate(${dx}px, ${dy}px)`;
-      }, { passive: true });
-
-      window.addEventListener('touchend', () => {
-        isDown = false;
-        win.style.willChange = 'auto';
-      });
-    }
-    makeDraggable('win1');
-    makeDraggable('win2');
+    window.addEventListener('touchend', () => {
+      isDown = false;
+      win.style.willChange = 'auto';
+    });
+  }
+  makeDraggable('win1');
+  makeDraggable('win2');
 });
 document.addEventListener('DOMContentLoaded', () => {
   const settingsBtn = document.getElementById('settingsBtn');
@@ -696,6 +616,10 @@ document.addEventListener('DOMContentLoaded', () => {
       githubSummary.textContent = 'Error loading GitHub.';
     }
   }
+
+  // Expose the robust implementations globally so other scripts can call them
+  window.refreshHackatime = refreshHackatime;
+  window.refreshGithub = refreshGithub;
 
   // Initialize
   loadSettings();
