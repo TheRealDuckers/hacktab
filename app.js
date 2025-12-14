@@ -87,11 +87,11 @@ window.refreshGithub = async function(username) {
     const profile = await profileRes.json();
     githubSummary.textContent = `${profile.login} • ${profile.public_repos} repos • ${profile.followers} followers`;
 
-    const reposRes = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=100`);
+    const reposRes = await fetch(`https://api.github.com/users/${encodeURIComponent(username)}/repos?per_page=30`);
     const repos = await reposRes.json();
     repos.sort((a, b) => b.stargazers_count - a.stargazers_count);
 
-    repos.slice(0, 8).forEach(r => {
+    repos.slice(0, 30).forEach(r => {
       const li = document.createElement('li');
       li.innerHTML = `<a href="${r.html_url}" target="_blank">${r.name} (${r.stargazers_count}★)</a>`;
       githubRepos.appendChild(li);
